@@ -20,10 +20,10 @@ The central focus of the repository is to find stable grasping points considerin
 
 ## Installation
 
-#### Install ROS2 Humble
+#### 1. Install ROS2 Humble
 For ROS2 Humble installation on Ubuntu 22.04 refer to the following link [Install ROS2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html) 
 
-#### Install Gazebo 11.10.2
+#### 2. Install Gazebo 11.10.2
 - Install Gazebo and its supplementry files:
 ```bash
 sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable
@@ -43,17 +43,17 @@ Install Gazebo ROS2 packages:
 sudo apt install ros-humble-gazebo-ros-pkgs
 ```
 
-#### Install the PCL for for ROS2 humble
+#### 3. Install the PCL for for ROS2 humble
 ```bash
 sudo apt-get install ros-humble-pcl-*
 ```
 
-#### Install PCL development files and libraries
+#### 4. Install PCL development files and libraries
 ```bash
 sudo apt install libpcl-dev
 ```
 
-#### Setup the project
+#### 5. Setup the project
 ```bash
 # Clone the repository in src folder
 git clone https://github.com/hrishikesh-st/vbm_project.git
@@ -71,7 +71,7 @@ source install/setup.bash
 
 > IMPORTANT: You need to initiate extra 4 terminal sessions to run the entire project end-to-end.
 
-### Launch the simulation
+### 1. Launch the simulation
 - Using the same terminal session used to source the build files spawn the simulation environment:
 ```
 ros2 launch vbm_project_env simulation.launch.py
@@ -79,7 +79,7 @@ ros2 launch vbm_project_env simulation.launch.py
 > NOTE: This will spawn a camera, table and a desired object on the table in the Gazebo environment.
 <img src="docs/gazebo_env.png" width=500/>
 
-### Spawn Rviz to visualize the point cloud data
+### 2. Spawn Rviz to visualize the point cloud data
 - Spawn the first terminal session
 - Spawn Rviz:
 ```
@@ -87,7 +87,7 @@ ros2 run rviz2 rviz2
 ```
 - Change the Fixed Frame to world 
 
-### Transform the point cloud from the camera frame to the world frame
+### 3. Transform the point cloud from the camera frame to the world frame
 - Spawn second terminal session.
 - Spawn the node transform_point_cloud.py from the vbm_project_grasping package.
 - transform_point_cloud node publishes the transformed point cloud to /transformed_pointcloud_data topic.
@@ -98,7 +98,7 @@ ros2 run vbm_project_grasping transform_point_cloud.py
 > NOTE: The transformation for the current version is hardcoded into a transformation matrix. The future scope is to utilise the tf2 library.
 <img src="docs/transformed_pointcloud_data.png" width=500/>
 
-### Pre-process the transformed point cloud data using the PCL library
+### 4. Pre-process the transformed point cloud data using the PCL library
 - Spawn third terminal session.
 - Spawn the processPointCloud CPP node from the vbm_project_grasping package.
 - processPointCloud node downsamples the data, removes the major plane and extracts the point cloud of the object of interest.
@@ -109,7 +109,7 @@ ros2 run vbm_project_grasping processPointCloud
 - Visualize the processed pointcloud with the PointCloud2 message from /processed_pointcloud_data topic.
 <img src="docs/processed_pointcloud_data.png" width=500/>
 
-### Detect the best grasping points using heuristic exhaustive search
+### 5. Detect the best grasping points using heuristic exhaustive search
 - Spawn the fourth terminal session.
 - Spawn the grasp_synthesis_node.py node from the vbm_project_grasping package:
 ```
@@ -128,3 +128,8 @@ ros2 run vbm_project_grasping grasp_synthesis_node.py
 <img src="docs/grasping_points.png" width=500/> 
 
 ## References
+- Richtsfeld, Mario, and Markus Vincze. ["Grasping of unknown objects from a table top." In Workshop on Vision in Action: Efficient strategies for cognitive agents in complex environments. 2008.](https://inria.hal.science/inria-00325794/document) 
+- PCL Tutorials:
+    - [Downsampling a PointCloud using a VoxelGrid filter](https://pcl.readthedocs.io/projects/tutorials/en/latest/voxel_grid.html)
+    - [Filtering a PointCloud using a PassThrough filter](https://pcl.readthedocs.io/projects/tutorials/en/master/passthrough.html)
+    - [Plane model segmentation](https://pcl.readthedocs.io/projects/tutorials/en/master/planar_segmentation.html)
