@@ -79,6 +79,14 @@ ros2 launch vbm_project_env simulation.launch.py
 > NOTE: This will spawn a camera, table and a desired object on the table in the Gazebo environment.
 <img src="docs/gazebo_env.png" width=500/>
 
+### Spawn Rviz to visualize the point cloud data
+- Spawn the first terminal session
+- Spawn Rviz:
+```
+ros2 run rviz2 rviz2
+```
+- Change the Fixed Frame to world 
+
 ### Transform the point cloud from the camera frame to the world frame
 - Spawn second terminal session.
 - Spawn the node transform_point_cloud.py from the vbm_project_grasping package.
@@ -86,7 +94,8 @@ ros2 launch vbm_project_env simulation.launch.py
 ```
 ros2 run vbm_project_grasping transform_point_cloud.py 
 ```
-> NOTE: The transformation for the current version is hardcoded into a transformation matrix. The future scope is to utilise the tf2 library
+- Visualize the transformed pointcloud with the PointCloud2 message from /transformed_pointcloud_data topic.
+> NOTE: The transformation for the current version is hardcoded into a transformation matrix. The future scope is to utilise the tf2 library.
 <img src="docs/transformed_pointcloud_data.png" width=500/>
 
 ### Pre-process the transformed point cloud data using the PCL library
@@ -97,6 +106,7 @@ ros2 run vbm_project_grasping transform_point_cloud.py
 ```
 ros2 run vbm_project_grasping processPointCloud
 ```
+- Visualize the processed pointcloud with the PointCloud2 message from /processed_pointcloud_data topic.
 <img src="docs/processed_pointcloud_data.png" width=500/>
 
 ### Detect the best grasping points using heuristic exhaustive search
@@ -112,13 +122,9 @@ ros2 run vbm_project_grasping grasp_synthesis_node.py
 - This node subscribes to /processed_pointcloud_data topic and then publishes to two topics:
     - /thresholded_pointcloud: to visualize the top-suface of the object.
     - /grasping_points: to visualize the detected top-surface grasping points of the object.
-<img src="docs/grasping_points.png" width=500/>
-
-### Spawn Rviz to visualize the point cloud data
-- Spawn the fifth terminal session
-- Spawn Rviz:
-```
-ros2 run rviz2 rviz2
-```
+- Visualise the best grasping points in the Marker message from the /grasping_points topic.
+- Visualize the PointCloud2 message from the /processed_pointcloud_data topic and Marker message from the /grasping_points topic simultaneously. 
+- This way you can visualize the location of grasping points on the processed point cloud essentially indicating the grasp points on the top-surface of the object.
+<img src="docs/grasping_points.png" width=500/> 
 
 ## References
