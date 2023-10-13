@@ -1,0 +1,31 @@
+# Ignore build and devel directories
+/build
+/install
+/logs
+
+# Ignore workspace overlay setup
+/workspace
+
+# Ignore ROS 2 build and install artifacts
+/install
+/build
+/ros2_ws
+
+# Ignore ROS 2 colcon build and log artifacts
+/build
+/log
+
+# Ignore ROS 2 workspace logs and artifacts
+/build
+/log
+
+# Ignore various ROS 2 and ROS 1 generated files
+/AMENT_IGNORE
+/COLCON_IGNORE
+
+# Ignore hidden files and directories
+.*
+!.gitignore
+
+# Ignore the numpy files
+*.npy
