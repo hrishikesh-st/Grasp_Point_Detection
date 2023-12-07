@@ -27,9 +27,7 @@ def generate_launch_description():
     robot_description = {'robot_description' : robot_description_config}
     spawn_entity = Node(package='gazebo_ros', executable="spawn_entity.py",
                         arguments=['-file',simulation_urdf_path,
-                                    '-entity','camera',
-                                    '-z','1.5',
-                                    '-P','1.57'],
+                                    '-entity','camera'],
                         output='both' )
 
     node_robot_state_publisher = Node(

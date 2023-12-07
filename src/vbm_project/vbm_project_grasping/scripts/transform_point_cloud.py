@@ -8,6 +8,9 @@ from sensor_msgs.msg import PointCloud2, PointField
 from sensor_msgs_py import point_cloud2
 from cv_bridge import CvBridge # Package to convert between ROS and OpenCV Images
 import numpy as np
+from tf2_ros import TransformListener, Buffer
+import tf_transformations
+# from tf2_ros.TansformListener import TransformListener
 
 
 class PointCloudTransformation(Node):
@@ -22,6 +25,8 @@ class PointCloudTransformation(Node):
         )
         self.subscription_pointcloud
         self.pc_publisher= self.create_publisher(PointCloud2, "/transformed_pointcloud_data", 10)
+        self.tf_buffer = Buffer()
+        self.tf_transformer = TransformListener(self.tf_buffer, self)
 
     def transformed_pointcloud_cb(self, data):
 
@@ -30,8 +35,12 @@ class PointCloudTransformation(Node):
         _cam_int = points_in_cam_frame[:, 3]
 
         _cam_data = np.hstack((_cam_data, np.ones_like(_cam_int).reshape(-1, 1)))
+        t = self.tf_buffer.lookup_transform('camera_link_optical', 'world', rclpy.time.Time())
+        
+        #Convert to Homogeneous transformation matrix
+        tf_rot = tf_transformations.quaternion_matrix([t.transform.rotation.x, t.transform.rotation.y, t.transform.rotation.z, t.transform.rotation.w])
+        tf_rot[:3, 3] = [t.transform.translation.x, t.transform.translation.y, t.transform.translation.z]
 
-        tf_rot = np.array([[-1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 1.5], [0, 0, 0, 1]])
 
         _world_data = np.matmul(tf_rot, _cam_data.T)
         points_in_world_frame = np.hstack((_world_data.T[:, :3], _cam_int.reshape(-1, 1)))
@@ -47,7 +56,6 @@ class PointCloudTransformation(Node):
     
         pc2 = point_cloud2.create_cloud(header, fields, points_in_world_frame)
         self.pc_publisher.publish(pc2)
-
         
 def main(args=None):
     rclpy.init(args=args)
@@ -59,3 +67,5 @@ def main(args=None):
   
 if __name__ == '__main__':
     main()
+
+
