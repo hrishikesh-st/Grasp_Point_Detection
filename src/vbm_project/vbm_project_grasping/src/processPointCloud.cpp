@@ -27,24 +27,32 @@ using namespace std::chrono_literals;
 using std::placeholders::_1;
 
 class processPointCloud:public rclcpp::Node
-{   
+{
     public:
     processPointCloud() : Node("process_point_cloud"), count_(0)
     {
         processedPointcloudPublisher = this->create_publisher<sensor_msgs::msg::PointCloud2>("/processed_pointcloud_data",1);
         pointcloudSubscriber = this->create_subscription<sensor_msgs::msg::PointCloud2>("/transformed_pointcloud_data", 10, std::bind(&processPointCloud::pcCallback, this, _1));
     }
-    
+
     private:
     void pcCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
     {
-        
+        /** This function is used to process point cloud data
+         *
+         * It performs voxel downsampling, distance thresholding and planar segmentation
+         * It publishes the processed point cloud data
+         * It subscribes to the transformed point cloud data
+         *
+         *  @param msg - input point cloud data
+         *  @return void
+        */
+
         pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud (new pcl::PointCloud<pcl::PointXYZ>);
         pcl::PCLPointCloud2::Ptr cloud(new pcl::PCLPointCloud2);
-        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_passthrough (new pcl::PointCloud<pcl::PointXYZ>);
-        pcl::PCLPointCloud2::Ptr voxel_cloud(new pcl::PCLPointCloud2);
         pcl::PCLPointCloud2::Ptr voxel_cloud_filtered(new pcl::PCLPointCloud2);
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>);;
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_passthrough (new pcl::PointCloud<pcl::PointXYZ>);
         pcl::PointCloud<pcl::PointXYZ>::Ptr plane_seg_cloud (new pcl::PointCloud<pcl::PointXYZ>);
         pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients);
         pcl::PointIndices::Ptr inliers (new pcl::PointIndices);
@@ -52,32 +60,28 @@ class processPointCloud:public rclcpp::Node
         pcl::fromROSMsg(*msg,*input_cloud);
         pcl::toPCLPointCloud2(*input_cloud, *cloud);
 
-        // std::cout<<"Source Cloud Points "<< cloud->width * cloud->height<< std::endl;
-        // Voxel Downsampling
+        // Voxel Downsampling, decrease the number of points
         pcl::VoxelGrid<pcl::PCLPointCloud2> voxel_filter;
         voxel_filter.setInputCloud(cloud);
         voxel_filter.setLeafSize(0.001f,0.001f,0.001f);
         voxel_filter.filter(*voxel_cloud_filtered);
         pcl::fromPCLPointCloud2(*voxel_cloud_filtered, *cloud_filtered);
-        // std::cout<<"Voxel Cloud Points "<< cloud_filtered->width * cloud_filtered->height<< std::endl;
 
-        // Create the filtering object
+        // Distance Thresholding along z-axis, remove unwanted points
         pcl::PassThrough<pcl::PointXYZ> pass;
         pass.setInputCloud (cloud_filtered);
         pass.setFilterFieldName ("z");
         pass.setFilterLimits (-1.0, 0.5);
         pass.setNegative (true);
         pass.filter (*cloud_passthrough);
-        
-        
-        // Planar segmentation
+
+        // Planar segmentation, remove table surface
         pcl::SACSegmentation<pcl::PointXYZ> plane_seg;
         plane_seg.setModelType(pcl::SACMODEL_PLANE);
         plane_seg.setMethodType(pcl::SAC_RANSAC);
         plane_seg.setDistanceThreshold(0.001);
         plane_seg.setInputCloud(cloud_passthrough);
         plane_seg.segment(*inliers,*coefficients);
-
 
         // Extracting Points
         pcl::ExtractIndices<pcl::PointXYZ> extract_indicies;
@@ -86,11 +90,10 @@ class processPointCloud:public rclcpp::Node
         extract_indicies.setNegative(true);
         extract_indicies.filter(*plane_seg_cloud);
 
-
+        // Publishing point cloud data
         sensor_msgs::msg::PointCloud2 point_cloud_msg;
         pcl::toROSMsg(*plane_seg_cloud, point_cloud_msg);
         point_cloud_msg.header.frame_id = "world";
-
         point_cloud_msg.header.stamp = now();
         processedPointcloudPublisher->publish(point_cloud_msg);
     }
@@ -107,7 +110,6 @@ int main(int argc, char * argv[])
 	//initialize ROS
 	rclcpp::init(argc, argv);
 
-	//create the 
 	rclcpp::spin(std::make_shared<processPointCloud>());
 	rclcpp::shutdown();
     return 0;
