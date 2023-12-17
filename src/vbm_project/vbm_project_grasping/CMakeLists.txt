@@ -33,7 +33,7 @@ target_link_libraries(processPointCloud ${PCL_LIBRARIES})
 
 ament_target_dependencies(
   processPointCloud
-  rclcpp std_msgs 
+  rclcpp std_msgs
   sensor_msgs
   pcl_conversions
 )
@@ -50,6 +50,7 @@ ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
   scripts/grasp_synthesis_node.py
   scripts/transform_point_cloud.py
+  scripts/clustering_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
